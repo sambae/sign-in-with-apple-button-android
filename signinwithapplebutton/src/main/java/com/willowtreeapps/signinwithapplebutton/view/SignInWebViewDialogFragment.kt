@@ -34,6 +34,7 @@ internal class SignInWebViewDialogFragment : DialogFragment() {
 
     private lateinit var authenticationAttempt: SignInWithAppleService.AuthenticationAttempt
     private var callback: ((SignInWithAppleResult) -> Unit)? = null
+    private var cancelCallback: (() -> Unit) = { dialog?.dismiss() }
 
     private val webViewIfCreated: WebView?
         get() = view as? WebView
@@ -62,7 +63,7 @@ internal class SignInWebViewDialogFragment : DialogFragment() {
             }
         }
 
-        val formInterceptorInterface = FormInterceptorInterface(authenticationAttempt.state, callback)
+        val formInterceptorInterface = FormInterceptorInterface(authenticationAttempt.state, callback, cancelCallback)
         webView.addJavascriptInterface(formInterceptorInterface, FormInterceptorInterface.NAME)
 
         webView.webViewClient =

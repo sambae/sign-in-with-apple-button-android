@@ -13,7 +13,8 @@ import java.io.IOException
  */
 class FormInterceptorInterface(
     private val expectedState: String,
-    private val callback: ((SignInWithAppleResult) -> Unit)?
+    private val callback: ((SignInWithAppleResult) -> Unit)?,
+    private val cancel: (() -> Unit)?
 ) {
     @JavascriptInterface
     fun processFormData(formData: String) {
@@ -30,6 +31,7 @@ class FormInterceptorInterface(
                 else
                     SignInWithAppleResult.Failure(IOException("Apple Error: $errorValue"))
             )
+            cancel?.invoke()
             return
         }
 
