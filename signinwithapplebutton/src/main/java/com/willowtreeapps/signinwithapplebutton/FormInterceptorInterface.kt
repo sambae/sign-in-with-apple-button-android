@@ -18,11 +18,23 @@ class FormInterceptorInterface(
     @JavascriptInterface
     fun processFormData(formData: String) {
         val values = formData.split(FORM_DATA_SEPARATOR)
-        val codeEncoded = values.find { it.startsWith(CODE) }
-        val stateEncoded = values.find { it.startsWith(STATE) }
+        val codeEncoded = values.find { it.startsWith(CODE_KEY) }
+        val stateEncoded = values.find { it.startsWith(STATE_KEY) }
+        val errorEncoded = values.find { it.startsWith(ERROR_KEY) }
+
+        if (errorEncoded != null) {
+            val errorValue = errorEncoded.substringAfter(KEY_VALUE_SEPARATOR);
+            callback?.invoke (
+                if (errorValue == CANCELLED_VALUE)
+                    SignInWithAppleResult.Cancel
+                else
+                    SignInWithAppleResult.Failure(IOException("Apple Error: $errorValue"))
+            )
+            return
+        }
 
         if (codeEncoded == null || stateEncoded == null) {
-            callback?.invoke(SignInWithAppleResult.Failure(IOException("Could not find state and/or code.")))
+            callback?.invoke(SignInWithAppleResult.Failure(IOException("The response did not contain state and/or code")))
             return
         }
 
@@ -39,8 +51,10 @@ class FormInterceptorInterface(
 
     companion object {
         const val NAME = "FormInterceptorInterface"
-        private const val STATE = "state"
-        private const val CODE = "code"
+        private const val STATE_KEY = "state"
+        private const val CODE_KEY = "code"
+        private const val ERROR_KEY = "error"
+        private const val CANCELLED_VALUE = "user_cancelled_authorize"
         private const val FORM_DATA_SEPARATOR = "|"
         private const val KEY_VALUE_SEPARATOR = "="
 
