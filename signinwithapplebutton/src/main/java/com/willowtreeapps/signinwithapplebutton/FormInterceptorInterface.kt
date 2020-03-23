@@ -13,7 +13,7 @@ import java.io.IOException
 class FormInterceptorInterface(
     private val expectedState: String,
     private val callback: ((SignInWithAppleResult) -> Unit)?,
-    private val cancel: (() -> Unit)?
+    private val dismiss: (() -> Unit)?
 ) {
     @JavascriptInterface
     fun processFormData(formData: String) {
@@ -30,7 +30,7 @@ class FormInterceptorInterface(
                 else
                     SignInWithAppleResult.Failure(IOException("Apple Error: $errorValue"))
             )
-            cancel?.invoke()
+            dismiss?.invoke()
             return
         }
 
@@ -42,6 +42,7 @@ class FormInterceptorInterface(
         val stateValue = stateEncoded.substringAfter(KEY_VALUE_SEPARATOR)
         val codeValue = codeEncoded.substringAfter(KEY_VALUE_SEPARATOR)
 
+        dismiss?.invoke()
         callback?.invoke(
             if (stateValue == expectedState)
                 SignInWithAppleResult.Success(codeValue)
